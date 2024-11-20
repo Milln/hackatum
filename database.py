@@ -39,7 +39,7 @@ if __name__ == "__main__":
     db = StreamingDatabase()
     db.populate_database()
 
-    with db.engine.connect() as con:
-        rows = con.execute(text("SELECT name from movie"))
-        for row in rows:
-            print(row)
+    # with db.engine.connect() as con:
+    #     rows = con.execute(text("SELECT name from movie"))
+    #     for row in rows:
+    #         print(row)

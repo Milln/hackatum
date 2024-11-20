@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime, timedelta
 import random
 
-from repository import Genre, SearchHistory, User, ViewingHistory, Movie
+from repository import Genre, User, Movie, ViewHistory
 
 
 # Define some random data generators
@@ -51,7 +51,7 @@ nouns = [
     "Haven",
     "Saga",
 ]
-subscription_types = ["Basic", "Premium", "Developer"]
+subscription_types = ["BASIC", "PREMIUM", "DEVELOPER"]
 genres_list = [
     "Action",
     "Adventure",
@@ -99,6 +99,9 @@ surnames = [
     "Taylor",
 ]
 
+NUM_USERS = 10
+NUM_MOVIES = 100
+
 
 def populate_database_random(engine: Engine):
     random.seed(1337)
@@ -106,7 +109,7 @@ def populate_database_random(engine: Engine):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    def generate_random_movie_names(num_movies: int = 100):
+    def generate_random_movie_names(num_movies: int = NUM_MOVIES):
         unique_movie_names = set()
         while (
             len(unique_movie_names) < num_movies
@@ -116,7 +119,7 @@ def populate_database_random(engine: Engine):
             unique_movie_names.add(f"{first_part} {last_part}")
         return unique_movie_names
 
-    def generate_random_names(num_names: int = 10):
+    def generate_random_names(num_names: int = NUM_USERS):
         unique_name_pairs = set()
         while (
             len(unique_name_pairs) < num_names
@@ -126,12 +129,12 @@ def populate_database_random(engine: Engine):
             unique_name_pairs.add((first_name, surname))
         return unique_name_pairs
 
-    def get_status(date: date) -> Literal["Available", "Expired", "Not Yet Released"]:
+    def get_status(date: date) -> Literal["AVAILABLE", "EXPIRED", "NOT_YET_RELEASED"]:
         if date > date.today():
-            return "Not Yet Released"
+            return "NOT_YET_RELEASED"
         if date + timedelta(days=365) > date.today():
-            return "Available"
-        return "Expired"
+            return "AVAILABLE"
+        return "EXPIRED"
 
     # Insert genre data
     for genre_id, genre_name in enumerate(genres_list):
@@ -141,15 +144,15 @@ def populate_database_random(engine: Engine):
 
     # Insert movie data
     all_genres = session.query(Genre).all()  # Fetch all genres
-    movie_names = generate_random_movie_names(100)
+    movie_names = generate_random_movie_names(NUM_MOVIES)
     for i, name in enumerate(movie_names):  # Insert 100 movies
         release_date = (
             datetime(random.randint(2016, 2025), 1, 1)
             + timedelta(days=random.randint(0, 365))
         ).date()
         subscription_type = random.choice(subscription_types)
-        license_cost = random.randint(1000, 50000)
-        num_views = random.randint(1, 1000)
+        license_cost = random.randint(1000, 500000)
+        num_views = random.randint(1, 10000)
         popularity_rating = random.randint(1, 10)
         status = get_status(release_date)
         num_genres = random.randint(1, 3)
@@ -171,15 +174,15 @@ def populate_database_random(engine: Engine):
     session.commit()
 
     # Insert user data
-    user_names = generate_random_names(10)
+    user_names = generate_random_names(NUM_USERS)
     for i, (surname, last_name) in enumerate(user_names):  # Insert 10 users
         gender = random.choice(["Male", "Female"])
         birthdate = (
             datetime(1990, 1, 1) + timedelta(days=random.randint(0, 365 * 30))
         ).date()  # Random birthdate
         phone_number = f"123-456-789{i}"
-        email = f"user{i}@example.com"
-        country = "USA"
+        email = f"{surname}.{last_name}@mail.de"
+        country = "Germany"
         home_ip = f"192.168.1.{random.randint(1, 254)}"
         subscription_type = random.choice(subscription_types)
 
@@ -199,26 +202,25 @@ def populate_database_random(engine: Engine):
 
         session.add(user)
 
+    session.commit()
+
+    for user_id in range(NUM_USERS):
         # Insert random search and viewing history for the user
-        for _ in range(random.randint(1, 5)):  # Random number of searches/views
-            movie_id = random.randint(1, 100)  # Random movie ID
-            timestamp = datetime(2023, 1, 1) + timedelta(days=random.randint(0, 365))
+        for _ in range(random.randint(1, 5)):  # Random number of views
+            timestamp = datetime.today() - timedelta(days=random.randint(0, 365))
 
-            # Insert search history
-            search_history = SearchHistory(
-                user_id=i,
+            view_history_entry = ViewHistory(
+                user_id=user_id,
+                movie_id=random.choice(range(NUM_MOVIES)),
+                view_timestamp=datetime.now(),  # Use current timestamp
+                device=random.choice(["Smartphone", "Tablet", "PC", "Fridge"]),
+                location="Germany",
                 timestamp=timestamp,
-                search_query="Blub",
             )
-            session.add(search_history)
 
-            # Insert viewing history
-            viewing_history = ViewingHistory(
-                user_id=i, movie_id=movie_id, timestamp=timestamp
-            )
-            session.add(viewing_history)
+            # Add the record to the session and commit
+            session.add(view_history_entry)
 
-    # Commit the session to persist the changes
     session.commit()
 
     # Close the session

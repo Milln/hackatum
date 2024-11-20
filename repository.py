@@ -53,6 +53,9 @@ class Movie(Base):
     status = Column(Enum(MovieStatus), nullable=False, default=MovieStatus.AVAILABLE)
     genres = relationship("Genre", secondary=movie_genre_table, back_populates="movies")
 
+    # Add relationship to view history
+    view_history = relationship("ViewHistory", back_populates="movie")
+
 
 # User table
 class User(Base):
@@ -69,8 +72,9 @@ class User(Base):
     country = Column(String, nullable=False)
     home_ip_address = Column(String, nullable=True)
     subscription_type = Column(Enum(SubscriptionType), nullable=False)
-    viewing_history = relationship("ViewingHistory", back_populates="user")
-    search_history = relationship("SearchHistory", back_populates="user")
+
+    # Add relationship to view history
+    view_history = relationship("ViewHistory", back_populates="user")
 
 
 # Subscription table
@@ -90,27 +94,22 @@ class Genre(Base):
     movies = relationship("Movie", secondary=movie_genre_table, back_populates="genres")
 
 
-# Viewing History table
-class ViewingHistory(Base):
-    __tablename__ = "viewing_history"
+class ViewHistory(Base):
+    __tablename__ = "view_history"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     movie_id = Column(Integer, ForeignKey("movie.id"), nullable=False)
+    view_timestamp = Column(DateTime, nullable=False)
+    device = Column(String, nullable=True)
+    location = Column(
+        String, nullable=True
+    )  # Optionally store the location where the movie was viewed.
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    user = relationship("User", back_populates="viewing_history")
-    movie = relationship("Movie")
 
-
-# Search History table
-class SearchHistory(Base):
-    __tablename__ = "search_history"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    search_query = Column(String, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    user = relationship("User", back_populates="search_history")
+    # Relationships
+    user = relationship("User", back_populates="view_history")
+    movie = relationship("Movie", back_populates="view_history")
 
 
 def create_database(engine: Engine):

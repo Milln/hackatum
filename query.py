@@ -31,7 +31,7 @@ if __name__ == "__main__":
     db = StreamingDatabase()
     db.populate_database()
     db_retriever = DatabaseRetriever(db)
-    response, metadata = db_retriever.prompt_database("What users are there?")
+    response, metadata = db_retriever.prompt_database("What has Diana Wilson watched?")
     with db.engine.connect() as session:
         rows = session.execute(
             text("""SELECT g.name AS genre_name
