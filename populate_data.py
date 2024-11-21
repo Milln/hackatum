@@ -348,9 +348,9 @@ def populate_database_random(
 
     session.commit()
 
-    for user_id in range(DEFAULT_NUM_USERS):
+    for user_id in range(num_users):
         # Insert random viewing history for the user
-        for _ in range(random.randint(1, 5)):  # Random number of views
+        for _ in range(random.randint(5, 10)):  # Random number of views
             timestamp = datetime.today() - timedelta(
                 days=random.randint(0, 365)
             )  # last year
