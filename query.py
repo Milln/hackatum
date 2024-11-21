@@ -2,7 +2,6 @@ from typing import Any, Dict
 from llama_index.core import SQLDatabase
 from llama_index.core.query_engine import NLSQLTableQueryEngine
 from llama_index.llms.azure_openai import AzureOpenAI
-from sqlalchemy import text
 
 from database import StreamingDatabase
 
@@ -31,15 +30,12 @@ if __name__ == "__main__":
     db = StreamingDatabase()
     db.populate_database()
     db_retriever = DatabaseRetriever(db)
-    response, metadata = db_retriever.prompt_database("What has Diana Wilson watched?")
-    with db.engine.connect() as session:
-        rows = session.execute(
-            text("""SELECT g.name AS genre_name
-                FROM movie m
-                JOIN movie_genre mg ON m.id = mg.movie_id
-                JOIN genre g ON mg.genre_id = g.id
-                WHERE m.name = 'Golden Shadow';""")
-        )
-        for row in rows:
-            print(row)
+    response, metadata = db_retriever.prompt_database("Which users are there?")
+    print(response)
+
+    print(db.get_all_users())
+
+    response, metadata = db_retriever.prompt_database(
+        "What movies has Evelyn Wilson watched?"
+    )
     print(response)

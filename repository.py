@@ -8,10 +8,10 @@ from sqlalchemy import (
     Enum,
     DateTime,
     Table,
+    func,
 )
 from sqlalchemy.orm import declarative_base, relationship
 import enum
-from datetime import datetime
 
 
 Base = declarative_base()
@@ -62,19 +62,20 @@ class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True)
-    surname = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     gender = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
     birthdate = Column(Date, nullable=False)
     phone_number = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
-    country = Column(String, nullable=False)
+    state = Column(String, nullable=False)
     home_ip_address = Column(String, nullable=True)
     subscription_type = Column(Enum(SubscriptionType), nullable=False)
 
     # Add relationship to view history
     view_history = relationship("ViewHistory", back_populates="user")
+    search_history = relationship("SearchHistory", back_populates="user")
 
 
 # Subscription table
@@ -105,11 +106,25 @@ class ViewHistory(Base):
     location = Column(
         String, nullable=True
     )  # Optionally store the location where the movie was viewed.
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="view_history")
     movie = relationship("Movie", back_populates="view_history")
+
+
+# SearchHistory table
+class SearchHistory(Base):
+    __tablename__ = "search_history"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    search_query = Column(String, nullable=False)
+    search_timestamp = Column(DateTime, nullable=False, default=func.now())
+    device = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+
+    # Relationship to User
+    user = relationship("User", back_populates="search_history")
 
 
 def create_database(engine: Engine):
