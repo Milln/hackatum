@@ -133,21 +133,8 @@ first_names = [
     "Olivia",
     "Noah",
     "Ava",
-    "Elijah",
     "Sophia",
     "James",
-    "Isabella",
-    "Lucas",
-    "Mia",
-    "Mason",
-    "Amelia",
-    "Ethan",
-    "Harper",
-    "Alexander",
-    "Evelyn",
-    "Henry",
-    "Abigail",
-    "Michael",
 ]
 
 last_names = [
@@ -158,18 +145,10 @@ last_names = [
     "Jones",
     "Miller",
     "Davis",
-    "Garcia",
     "Wilson",
     "Taylor",
-    "Martinez",
-    "Hernandez",
     "Lopez",
-    "Gonzalez",
     "Anderson",
-    "Thomas",
-    "Moore",
-    "Jackson",
-    "Lee",
 ]
 
 devices = ["Smartphone", "Tablet", "PC", "Fridge"]
@@ -225,6 +204,7 @@ locations = [
     "Wisconsin",
     "Wyoming",
 ]
+genders = ["M", "F", "NA"]
 
 
 DEFAULT_NUM_USERS = 10
@@ -290,9 +270,9 @@ def populate_database_random(
     movie_names = generate_random_movie_names(num_movies)
     for i, name in enumerate(movie_names):  # Insert 100 movies
         release_date = (
-            datetime(random.randint(2016, 2026), 1, 1)
+            datetime(random.randint(2018, 2026), 1, 1)
             + timedelta(days=random.randint(0, 365))
-        ).date()  # 2016-2027
+        ).date()  # 2018-2027
         subscription_type = random.choice(subscription_types)
         license_cost = random.randint(1000, 500000)
         num_views = random.randint(1, 10000)
@@ -319,13 +299,13 @@ def populate_database_random(
     # Insert user data
     user_names = generate_random_names(num_users)
     for i, (first_name, last_name) in enumerate(user_names):
-        gender = random.choice(["M", "F", "NA"])
+        gender = random.choice(genders)
         birthdate = (
             datetime(1970, 1, 1)
             + timedelta(days=random.randint(0, 365 * 40))  # 1970-2010
         ).date()
         phone_number = generate_random_phone_number()
-        email = f"{first_name}.{last_name}@freedom.com"
+        email = f"{first_name}.{last_name}@freedommail.com"
         state = random.choice(locations)
         home_ip = generate_random_ip()
         subscription_type = random.choice(subscription_types)
@@ -341,7 +321,6 @@ def populate_database_random(
             state=state,
             home_ip_address=home_ip,
             subscription_type=subscription_type,
-            hashed_password="supersecrethashedpassword",
         )
 
         session.add(user)
@@ -349,16 +328,19 @@ def populate_database_random(
     session.commit()
 
     for user_id in range(num_users):
-        # Insert random viewing history for the user
-        for _ in range(random.randint(5, 10)):  # Random number of views
-            timestamp = datetime.today() - timedelta(
-                days=random.randint(0, 365)
-            )  # last year
+        past_movies = (
+            session.query(Movie).filter(Movie.release_date < date.today()).all()
+        )
+        for _ in range(random.randint(5, 10)):
+            watched_movie = random.choice(past_movies)
+            delta = (date.today() - watched_movie.release_date).days
+            random_days = random.randint(0, delta)
+            random_timestamp = watched_movie.release_date + timedelta(days=random_days)
 
             view_history_entry = ViewHistory(
                 user_id=user_id,
-                movie_id=random.choice(range(DEFAULT_NUM_MOVIES)),
-                view_timestamp=timestamp,
+                movie_id=watched_movie.id,
+                view_timestamp=random_timestamp,
                 device=random.choice(devices),
                 location=random.choice(locations),
             )
@@ -367,12 +349,12 @@ def populate_database_random(
             session.add(view_history_entry)
 
         # Insert random search history for the user
-        for _ in range(random.randint(5, 10)):  # Random number of views
+        for _ in range(random.randint(10, 20)):  # Random number of views
             timestamp = datetime.today() - timedelta(
-                days=random.randint(0, 365)
-            )  # last year
+                days=random.randint(0, 365 * 2)
+            )  # last two years
 
-            view_history_entry = SearchHistory(
+            search_history_entry = SearchHistory(
                 user_id=user_id,
                 search_query=random.choice(adjectives + nouns + genres),
                 search_timestamp=timestamp,
@@ -381,7 +363,7 @@ def populate_database_random(
             )
 
             # Add the record to the session and commit
-            session.add(view_history_entry)
+            session.add(search_history_entry)
 
     session.commit()
 

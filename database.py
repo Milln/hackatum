@@ -55,7 +55,7 @@ class CineStreamDatabase:
 
     def print_info(self):
         print("Database is populated with the following:")
-        print(f"  - {len(self.get_all_movies())} moves")
+        print(f"  - {len(self.get_all_movies())} movies")
         print(f"  - {len(self.get_all_genres())} genres")
         print(f"  - {len(self.get_all_users())} users")
 

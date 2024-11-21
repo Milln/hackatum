@@ -12,7 +12,7 @@ You have access to a database, and can query it to help respond to the users que
 """
 
 
-class DatabaseRetriever:
+class CustomerChatbot:
     DEFAULT_SYSTEM_PROMPT = "You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information."
 
     def __init__(
@@ -28,12 +28,12 @@ class DatabaseRetriever:
             sql_database=self.sql_database, llm=self.llm
         )
 
-    def prompt_database(
-        self, prompt: str, user_name: str | None = None
+    def chat(
+        self, message: str, customer: str | None = None
     ) -> tuple[str, Dict[str, Any]]:
-        query = prompt
-        if user_name:
-            query = f"{prompt}. My name is {user_name}."
+        query = message
+        if customer:
+            query = f"{message}. My name is {customer}."
         response = self.query_engine.query(query)
         return str(response), response.metadata
 
@@ -58,13 +58,11 @@ class DatabaseRetriever:
 if __name__ == "__main__":
     db = CineStreamDatabase()
     db.populate_database()
-    db_retriever = DatabaseRetriever(db)
-    response, metadata = db_retriever.prompt_database("Which users are there?")
+    db_retriever = CustomerChatbot(db)
+    response, metadata = db_retriever.chat("Which users are there?")
     print(response)
 
     print(db.get_all_users())
 
-    response, metadata = db_retriever.prompt_database(
-        "What is Evelyn Wilson view history?"
-    )
+    response, metadata = db_retriever.chat("What is Evelyn Wilson view history?")
     print(response, metadata)

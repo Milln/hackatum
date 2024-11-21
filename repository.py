@@ -65,7 +65,6 @@ class User(Base):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     gender = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=False)
     birthdate = Column(Date, nullable=False)
     phone_number = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
