@@ -1,9 +1,10 @@
 import os
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import MetaData, create_engine
 
 from populate_data import populate_database_random
-from repository import create_database
+from repository import Genre, Movie, User, create_database
+from sqlalchemy.orm import sessionmaker
 
 
 # Create all tables in the database
@@ -19,6 +20,7 @@ class StreamingDatabase:
 
     def create_database(self):
         self.engine = create_engine(f"sqlite:///{self.DATABASE_PATH}", echo=self.echo)
+        self.SessionFactory = sessionmaker(bind=self.engine)
         create_database(self.engine)
 
     def populate_database(self):
@@ -33,6 +35,23 @@ class StreamingDatabase:
         populate_database_random(self.engine)
 
         print("Database populated!")
+
+    def get_all_users(self):
+        session = self.SessionFactory()
+        return session.query(User).all()
+
+    def get_all_movies(self):
+        session = self.SessionFactory()
+        return session.query(Movie).all()
+
+    def get_all_genres(self):
+        session = self.SessionFactory()
+        return session.query(Genre).all()
+
+    def get_metadata(self):
+        metadata = MetaData()
+        metadata.reflect(bind=self.engine)
+        return metadata.tables.items()
 
 
 if __name__ == "__main__":

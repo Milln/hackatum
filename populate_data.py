@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime, timedelta
 import random
 
-from repository import Genre, User, Movie, ViewHistory
+from repository import Genre, SearchHistory, User, Movie, ViewHistory
 
 
 # Define some random data generators
@@ -28,7 +28,29 @@ adjectives = [
     "Forgotten",
     "Secret",
     "Enchanted",
+    "Amazing",
+    "Broken",
+    "Clever",
+    "Fantastic",
+    "Glorious",
+    "Invincible",
+    "Jubilant",
+    "Kind",
+    "Legendary",
+    "Noble",
+    "Outstanding",
+    "Powerful",
+    "Quiet",
+    "Radiant",
+    "Timeless",
+    "Unstoppable",
+    "Vibrant",
+    "Wondrous",
+    "Xenial",
+    "Young",
+    "Zealous",
 ]
+
 nouns = [
     "Forest",
     "Kingdom",
@@ -50,9 +72,30 @@ nouns = [
     "Memory",
     "Haven",
     "Saga",
+    "Adventure",
+    "Battle",
+    "Castle",
+    "Empire",
+    "Galaxy",
+    "Hero",
+    "Island",
+    "Legend",
+    "Mountain",
+    "Night",
+    "Odyssey",
+    "Phantom",
+    "Quest",
+    "Treasure",
+    "Universe",
+    "Victory",
+    "Whisper",
+    "Xylophone",
+    "Yearning",
+    "Zenith",
 ]
+
 subscription_types = ["BASIC", "PREMIUM", "DEVELOPER"]
-genres_list = [
+genres = [
     "Action",
     "Adventure",
     "Comedy",
@@ -85,8 +128,29 @@ first_names = [
     "Frank",
     "Grace",
     "Hank",
+    "Emma",
+    "Liam",
+    "Olivia",
+    "Noah",
+    "Ava",
+    "Elijah",
+    "Sophia",
+    "James",
+    "Isabella",
+    "Lucas",
+    "Mia",
+    "Mason",
+    "Amelia",
+    "Ethan",
+    "Harper",
+    "Alexander",
+    "Evelyn",
+    "Henry",
+    "Abigail",
+    "Michael",
 ]
-surnames = [
+
+last_names = [
     "Smith",
     "Johnson",
     "Brown",
@@ -97,19 +161,87 @@ surnames = [
     "Garcia",
     "Wilson",
     "Taylor",
+    "Martinez",
+    "Hernandez",
+    "Lopez",
+    "Gonzalez",
+    "Anderson",
+    "Thomas",
+    "Moore",
+    "Jackson",
+    "Lee",
 ]
 
-NUM_USERS = 10
-NUM_MOVIES = 100
+devices = ["Smartphone", "Tablet", "PC", "Fridge"]
+locations = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+]
 
 
-def populate_database_random(engine: Engine):
+DEFAULT_NUM_USERS = 15
+DEFAULT_NUM_MOVIES = 200
+
+
+def populate_database_random(
+    engine: Engine,
+    num_users: int = DEFAULT_NUM_USERS,
+    num_movies: int = DEFAULT_NUM_MOVIES,
+):
     random.seed(1337)
 
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    def generate_random_movie_names(num_movies: int = NUM_MOVIES):
+    def generate_random_movie_names(num_movies: int):
         unique_movie_names = set()
         while (
             len(unique_movie_names) < num_movies
@@ -119,15 +251,26 @@ def populate_database_random(engine: Engine):
             unique_movie_names.add(f"{first_part} {last_part}")
         return unique_movie_names
 
-    def generate_random_names(num_names: int = NUM_USERS):
+    def generate_random_names(num_names: int):
         unique_name_pairs = set()
         while (
             len(unique_name_pairs) < num_names
         ):  # Ensure exactly 10 unique combinations
             first_name = random.choice(first_names)
-            surname = random.choice(surnames)
+            surname = random.choice(last_names)
             unique_name_pairs.add((first_name, surname))
         return unique_name_pairs
+
+    def generate_random_ip():
+        return ".".join(str(random.randint(0, 255)) for _ in range(4))
+
+    def generate_random_phone_number():
+        area_code = random.randint(200, 999)  # Area codes don't start with 0 or 1
+        central_office_code = random.randint(
+            200, 999
+        )  # Central office codes don't start with 0 or 1
+        line_number = random.randint(1000, 9999)
+        return f"({area_code}) {central_office_code}-{line_number}"
 
     def get_status(date: date) -> Literal["AVAILABLE", "EXPIRED", "NOT_YET_RELEASED"]:
         if date > date.today():
@@ -137,19 +280,19 @@ def populate_database_random(engine: Engine):
         return "EXPIRED"
 
     # Insert genre data
-    for genre_id, genre_name in enumerate(genres_list):
+    for genre_id, genre_name in enumerate(genres):
         session.add(Genre(id=genre_id, name=genre_name))
 
     session.commit()
 
     # Insert movie data
     all_genres = session.query(Genre).all()  # Fetch all genres
-    movie_names = generate_random_movie_names(NUM_MOVIES)
+    movie_names = generate_random_movie_names(num_movies)
     for i, name in enumerate(movie_names):  # Insert 100 movies
         release_date = (
-            datetime(random.randint(2016, 2025), 1, 1)
+            datetime(random.randint(2016, 2026), 1, 1)
             + timedelta(days=random.randint(0, 365))
-        ).date()
+        ).date()  # 2016-2027
         subscription_type = random.choice(subscription_types)
         license_cost = random.randint(1000, 500000)
         num_views = random.randint(1, 10000)
@@ -174,27 +317,28 @@ def populate_database_random(engine: Engine):
     session.commit()
 
     # Insert user data
-    user_names = generate_random_names(NUM_USERS)
-    for i, (surname, last_name) in enumerate(user_names):  # Insert 10 users
-        gender = random.choice(["Male", "Female"])
+    user_names = generate_random_names(num_users)
+    for i, (first_name, last_name) in enumerate(user_names):
+        gender = random.choice(["M", "F", "NA"])
         birthdate = (
-            datetime(1990, 1, 1) + timedelta(days=random.randint(0, 365 * 30))
-        ).date()  # Random birthdate
-        phone_number = f"123-456-789{i}"
-        email = f"{surname}.{last_name}@mail.de"
-        country = "Germany"
-        home_ip = f"192.168.1.{random.randint(1, 254)}"
+            datetime(1970, 1, 1)
+            + timedelta(days=random.randint(0, 365 * 40))  # 1970-2010
+        ).date()
+        phone_number = generate_random_phone_number()
+        email = f"{first_name}.{last_name}@freedom.com"
+        state = random.choice(locations)
+        home_ip = generate_random_ip()
         subscription_type = random.choice(subscription_types)
 
         user = User(
             id=i,
-            surname=surname,
+            first_name=first_name,
             last_name=last_name,
             gender=gender,
             birthdate=birthdate,
             phone_number=phone_number,
             email=email,
-            country=country,
+            state=state,
             home_ip_address=home_ip,
             subscription_type=subscription_type,
             hashed_password="supersecrethashedpassword",
@@ -204,18 +348,36 @@ def populate_database_random(engine: Engine):
 
     session.commit()
 
-    for user_id in range(NUM_USERS):
-        # Insert random search and viewing history for the user
+    for user_id in range(DEFAULT_NUM_USERS):
+        # Insert random viewing history for the user
         for _ in range(random.randint(1, 5)):  # Random number of views
-            timestamp = datetime.today() - timedelta(days=random.randint(0, 365))
+            timestamp = datetime.today() - timedelta(
+                days=random.randint(0, 365)
+            )  # last year
 
             view_history_entry = ViewHistory(
                 user_id=user_id,
-                movie_id=random.choice(range(NUM_MOVIES)),
-                view_timestamp=datetime.now(),  # Use current timestamp
-                device=random.choice(["Smartphone", "Tablet", "PC", "Fridge"]),
-                location="Germany",
-                timestamp=timestamp,
+                movie_id=random.choice(range(DEFAULT_NUM_MOVIES)),
+                view_timestamp=timestamp,
+                device=random.choice(devices),
+                location=random.choice(locations),
+            )
+
+            # Add the record to the session and commit
+            session.add(view_history_entry)
+
+        # Insert random search history for the user
+        for _ in range(random.randint(5, 10)):  # Random number of views
+            timestamp = datetime.today() - timedelta(
+                days=random.randint(0, 365)
+            )  # last year
+
+            view_history_entry = SearchHistory(
+                user_id=user_id,
+                search_query=random.choice(adjectives + nouns + genres),
+                search_timestamp=timestamp,
+                device=random.choice(devices),
+                location=random.choice(locations),
             )
 
             # Add the record to the session and commit
