@@ -8,8 +8,8 @@ from sqlalchemy.orm import sessionmaker
 
 
 # Create all tables in the database
-class StreamingDatabase:
-    DATABASE_PATH = "streaming_service.db"
+class CineStreamDatabase:
+    DATABASE_PATH = "cinestream.db"
     POPULATION_SCRIPT_PATH = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "populate_data.sql"
     )
@@ -53,9 +53,15 @@ class StreamingDatabase:
         metadata.reflect(bind=self.engine)
         return metadata.tables.items()
 
+    def print_info(self):
+        print("Database is populated with the following:")
+        print(f"- {len(get_all_movies)} moves")
+        print(f"- {len(get_all_genres)} genres")
+        print(f"- {len(get_all_users)} users")
+
 
 if __name__ == "__main__":
-    db = StreamingDatabase()
+    db = CineStreamDatabase()
     db.populate_database()
 
     # with db.engine.connect() as con:
