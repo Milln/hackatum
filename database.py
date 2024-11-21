@@ -24,17 +24,17 @@ class CineStreamDatabase:
         create_database(self.engine)
 
     def populate_database(self):
-        print("Populating database...")
+        print("Populating database ...")
         try:
             os.remove(self.DATABASE_PATH)
-            print("Recreating database!")
+            print("Recreating database ✅")
             self.create_database()
         except OSError:
             pass
 
         populate_database_random(self.engine)
 
-        print("Database populated!")
+        print("Database populated  ✅")
 
     def get_all_users(self):
         session = self.SessionFactory()
@@ -55,9 +55,9 @@ class CineStreamDatabase:
 
     def print_info(self):
         print("Database is populated with the following:")
-        print(f"- {len(get_all_movies)} moves")
-        print(f"- {len(get_all_genres)} genres")
-        print(f"- {len(get_all_users)} users")
+        print(f"  - {len(self.get_all_movies())} moves")
+        print(f"  - {len(self.get_all_genres())} genres")
+        print(f"  - {len(self.get_all_users())} users")
 
 
 if __name__ == "__main__":

@@ -387,5 +387,3 @@ def populate_database_random(
 
     # Close the session
     session.close()
-
-    print("Database populated successfully!")
