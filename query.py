@@ -3,14 +3,20 @@ from llama_index.core import SQLDatabase
 from llama_index.core.query_engine import NLSQLTableQueryEngine
 from llama_index.llms.azure_openai import AzureOpenAI
 
-from database import StreamingDatabase
+from database import CineStreamDatabase
+
+DEFAULT_SYSTEM_PROMPT = """
+You are a friendly chat assistant for a movie streaming service called CineStream.
+
+You have access to a database, and can query it to help respond to the users queries.
+"""
 
 
 class DatabaseRetriever:
     DEFAULT_SYSTEM_PROMPT = "You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information."
 
     def __init__(
-        self, db: StreamingDatabase, system_prompt: str = DEFAULT_SYSTEM_PROMPT
+        self, db: CineStreamDatabase, system_prompt: str = DEFAULT_SYSTEM_PROMPT
     ):
         self.sql_database = SQLDatabase(db.engine)
         self.initialize_retriever(system_prompt)
@@ -50,7 +56,7 @@ class DatabaseRetriever:
 
 
 if __name__ == "__main__":
-    db = StreamingDatabase()
+    db = CineStreamDatabase()
     db.populate_database()
     db_retriever = DatabaseRetriever(db)
     response, metadata = db_retriever.prompt_database("Which users are there?")
