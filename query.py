@@ -5,10 +5,10 @@ from llama_index.llms.azure_openai import AzureOpenAI
 
 from database import StreamingDatabase
 
-DEFAULT_SYSTEM_PROMPT = "You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information."
-
 
 class DatabaseRetriever:
+    DEFAULT_SYSTEM_PROMPT = "You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information."
+
     def __init__(
         self, db: StreamingDatabase, system_prompt: str = DEFAULT_SYSTEM_PROMPT
     ):
@@ -33,6 +33,9 @@ class DatabaseRetriever:
 
     def get_system_prompt(self):
         return self.system_prompt
+
+    def reset_system_prompt(self):
+        self.initialize_retriever(self.DEFAULT_SYSTEM_PROMPT)
 
     def set_system_prompt(self, system_prompt: str):
         self.initialize_retriever(system_prompt)
