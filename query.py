@@ -5,25 +5,45 @@ from llama_index.llms.azure_openai import AzureOpenAI
 
 from database import StreamingDatabase
 
-
-GPT_4O_MINI = AzureOpenAI(
-    engine="gpt-4o-mini",
-    model="gpt-4o-mini",
-    api_version="2024-08-01-preview",
-    system_prompt="You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information.",
-)
+DEFAULT_SYSTEM_PROMPT = "You are a friendly chat assistant for a streaming service. You have access to a database and can use the provided information."
 
 
 class DatabaseRetriever:
-    def __init__(self, db: StreamingDatabase):
+    def __init__(
+        self, db: StreamingDatabase, system_prompt: str = DEFAULT_SYSTEM_PROMPT
+    ):
         self.sql_database = SQLDatabase(db.engine)
+        self.initialize_retriever(system_prompt)
+
+    def initialize_retriever(self, system_prompt: str):
+        self.system_prompt = system_prompt
+        self.llm = self.create_llm(system_prompt)
         self.query_engine = NLSQLTableQueryEngine(
-            sql_database=self.sql_database, llm=GPT_4O_MINI
+            sql_database=self.sql_database, llm=self.llm
         )
 
-    def prompt_database(self, prompt: str) -> tuple[str, Dict[str, Any]]:
-        response = self.query_engine.query(prompt)
+    def prompt_database(
+        self, prompt: str, user_name: str | None = None
+    ) -> tuple[str, Dict[str, Any]]:
+        query = prompt
+        if user_name:
+            query = f"{prompt}. My name is {user_name}."
+        response = self.query_engine.query(query)
         return str(response), response.metadata
+
+    def get_system_prompt(self):
+        return self.system_prompt
+
+    def set_system_prompt(self, system_prompt: str):
+        self.initialize_retriever(system_prompt)
+
+    def create_llm(self, system_prompt: str):
+        return AzureOpenAI(
+            engine="gpt-4o-mini",
+            model="gpt-4o-mini",
+            api_version="2024-08-01-preview",
+            system_prompt=system_prompt,
+        )
 
 
 if __name__ == "__main__":
@@ -36,6 +56,6 @@ if __name__ == "__main__":
     print(db.get_all_users())
 
     response, metadata = db_retriever.prompt_database(
-        "What movies has Evelyn Wilson watched?"
+        "What is Evelyn Wilson view history?"
     )
-    print(response)
+    print(response, metadata)
