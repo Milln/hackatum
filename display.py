@@ -19,8 +19,10 @@ This was generated using the following query
 ```
 """
 
+
 def print_markdown(markdown: str) -> None:
     display(Markdown(markdown))
+
 
 def print_interaction(user_message: str, response: str, metadata: dict) -> None:
     print_markdown(
